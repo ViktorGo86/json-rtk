@@ -82,7 +82,7 @@ fetchDataAndProcess('https://mp505737ab307e812387.free.beeceptor.com/regions')
                 chart: {
                     type: 'tilemap',
                     inverted: true,
-                    height: '60%'
+                    height: '55%'
                 },
 
                 accessibility: {
