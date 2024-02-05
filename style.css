@@ -1,0 +1,12 @@
+#container {
+    min-width: 950px;
+    max-width: 1400px;
+   
+    margin: 0 auto;
+}
+
+.highcharts-tooltip-box {
+    fill: #c4d4d7;
+    fill-opacity: 0.6;
+    stroke-width: 1;
+}
