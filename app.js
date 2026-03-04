@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', function () {
         return fetch(url)
           .then(response => response.json())
           .then(data => {
+            if (!Array.isArray(data)) {
+            console.error('Expected an array but got:', data);
+            return {}; // возвращаем пустой объект вместо fail
+            }
             // Group by category1 and category2 while summing attribut1 and counting attribut2
             return data.reduce((acc, obj) => {
                 //const key = `${obj.coordinat_x}_${obj.coordinat_y}`;
@@ -30,7 +34,6 @@ document.addEventListener('DOMContentLoaded', function () {
           })
           .catch(error => console.error(`Error fetching data from ${url}:`, error));
       }
-
 
 
 
