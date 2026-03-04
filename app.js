@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return fetch(url)
             .then(response => response.json())
             .then(data => {
-                // Проверяем, что data.regions существует и это массив
                 if (!data.regions || !Array.isArray(data.regions)) {
                     console.error('Expected an array but got:', data);
                     return {};
@@ -26,15 +25,20 @@ document.addEventListener('DOMContentLoaded', function () {
                             mpi_cpzl: 0
                         };
                     }
-                    acc[key].cpzl += obj.count_cpzl;
-                    acc[key].mpi += obj.count_mpi;
+
+                    // Приводим count_cpzl и count_mpi к числу и проверяем на NaN
+                    const cpzl = Number(obj.count_cpzl) || 0;
+                    const mpi = Number(obj.count_mpi) || 0;
+
+                    acc[key].cpzl += cpzl;
+                    acc[key].mpi += mpi;
                     acc[key].mpi_cpzl = acc[key].cpzl ? (acc[key].mpi / acc[key].cpzl) * 100 : 0;
                     return acc;
                 }, {});
             })
             .catch(error => {
                 console.error(`Error fetching data from ${url}:`, error);
-                return {}; // на всякий случай возвращаем пустой объект
+                return {};
             });
     }
 
@@ -55,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 region_cd: item.region_cd
             }));
 
-            console.log('Result seriesData:', seriesData); // <-- Проверка
+            console.log('Result seriesData:', seriesData); // проверка данных
 
             Highcharts.chart('container', {
                 chart: { type: 'tilemap', inverted: true, height: '55%' },
