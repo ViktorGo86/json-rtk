@@ -1,19 +1,19 @@
 document.addEventListener('DOMContentLoaded', function () {
 
     function fetchDataAndProcess(url) {
-        return fetch(url)
-          .then(response => response.json())
-          .then(data => {
-            if (!Array.isArray(data)) {
-            console.error('Expected an array but got:', data);
-            return {}; // возвращаем пустой объект вместо fail
+    return fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const regionsArray = data.regions; // <-- используем вложенный массив
+            if (!Array.isArray(regionsArray)) {
+                console.error('Expected an array but got:', regionsArray);
+                return {};
             }
-            // Group by category1 and category2 while summing attribut1 and counting attribut2
-            return data.reduce((acc, obj) => {
-                //const key = `${obj.coordinat_x}_${obj.coordinat_y}`;
+
+            // Group by region_cd + region_name + coordinates + code
+            return regionsArray.reduce((acc, obj) => {
                 const key = `${obj.region_cd}_${obj.region_name}_${obj.coordinat_x}_${obj.coordinat_y}_${obj.code}`;
                 if (!acc[key]) {
-                    //acc[key] = { coordinat_x: obj.coordinat_x, category2: obj.coordinat_y, sumcpzl: 0, summpi: 0 };
                     acc[key] = {
                         region_cd: obj.region_cd,
                         region_name: obj.region_name,
@@ -27,13 +27,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 acc[key].cpzl += obj.count_cpzl;
                 acc[key].mpi += obj.count_mpi;
-                //acc[key].mpi_cpzl += obj.count_mpi;
                 acc[key].mpi_cpzl = (acc[key].mpi / acc[key].cpzl) * 100;
                 return acc;
             }, {});
-          })
-          .catch(error => console.error(`Error fetching data from ${url}:`, error));
-      }
+        })
+        .catch(error => console.error(`Error fetching data from ${url}:`, error));
+    }
 
 
 
