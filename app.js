@@ -4,13 +4,14 @@ document.addEventListener('DOMContentLoaded', function () {
         return fetch(url)
             .then(response => response.json())
             .then(data => {
-                const regionsArray = data.regions; // берем массив из объекта
-                if (!Array.isArray(regionsArray)) {
-                    console.error('Expected an array but got:', regionsArray);
+                // Проверяем, что data.regions существует и это массив
+                if (!data.regions || !Array.isArray(data.regions)) {
+                    console.error('Expected an array but got:', data);
                     return {};
                 }
 
-                // Group by region_cd + region_name + coordinates + code
+                const regionsArray = data.regions;
+
                 return regionsArray.reduce((acc, obj) => {
                     const key = `${obj.region_cd}_${obj.region_name}_${obj.coordinat_x}_${obj.coordinat_y}_${obj.code}`;
                     if (!acc[key]) {
@@ -27,23 +28,22 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     acc[key].cpzl += obj.count_cpzl;
                     acc[key].mpi += obj.count_mpi;
-                    acc[key].mpi_cpzl = (acc[key].mpi / acc[key].cpzl) * 100;
+                    acc[key].mpi_cpzl = acc[key].cpzl ? (acc[key].mpi / acc[key].cpzl) * 100 : 0;
                     return acc;
                 }, {});
             })
-            .catch(error => console.error(`Error fetching data from ${url}:`, error));
+            .catch(error => {
+                console.error(`Error fetching data from ${url}:`, error);
+                return {}; // на всякий случай возвращаем пустой объект
+            });
     }
 
-    // Разделить числа в тексте пробелами по разрядам
     function numberWithSpaces(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     }
 
-    // Fetch and process data
     fetchDataAndProcess('https://polmkiu.free.beeceptor.com/regions')
         .then(result => {
-            if (!result) return;
-
             const seriesData = Object.values(result).map(item => ({
                 x: item.coordinat_x,
                 y: item.coordinat_y,
@@ -55,12 +55,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 region_cd: item.region_cd
             }));
 
+            console.log('Result seriesData:', seriesData); // <-- Проверка
+
             Highcharts.chart('container', {
-                chart: {
-                    type: 'tilemap',
-                    inverted: true,
-                    height: '55%'
-                },
+                chart: { type: 'tilemap', inverted: true, height: '55%' },
                 credits: { enabled: false },
                 exporting: false,
                 title: {
@@ -93,19 +91,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 tooltip: {
                     useHTML: true,
-                    backgroundColor: {
-                        linearGradient: [0, 0, 0, 60],
-                        stops: [
-                            [0, '#FFFFFF'],
-                            [1, '#E0E0E0']
-                        ]
-                    },
+                    backgroundColor: { linearGradient: [0,0,0,60], stops:[[0,'#FFFFFF'],[1,'#E0E0E0']] },
                     pointFormatter: function () {
                         const imageFilename = this.region_cd.trim() + '.svg';
-                        return `<div style="text-align: center;">
+                        return `<div style="text-align:center;">
                                     <img src="./logos/${imageFilename}" style="width:100px;height:100px;">
                                 </div><br>
-                                <div style="background-color: white; padding: 1em 1.5em; border-radius: 0.5rem;">
+                                <div style="background-color:white;padding:1em 1.5em;border-radius:0.5rem;">
                                     <b>${this.region}</b><br>
                                     Кол-во застрахованных: <b>${numberWithSpaces(this.value)}</b><br>
                                     Кол-во ЦМП: <b>${numberWithSpaces(this.val_mpi)}</b><br>
@@ -119,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             useHTML: true,
                             enabled: true,
                             formatter: function () {
-                                return `<div style="text-align: center;">
+                                return `<div style="text-align:center;">
                                             <span>${this.point.hint}</span><br>
                                             <span>${this.point.val_mpi_cpzl}</span>
                                         </div>`;
@@ -129,10 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     }
                 },
-                series: [{
-                    name: 'Регион:',
-                    data: seriesData
-                }]
+                series: [{ name: 'Регион:', data: seriesData }]
             });
         });
 });
